@@ -1,0 +1,9 @@
+dist/
+build/
+nbproject/private/
+*.d
+*.o
+*.p1
+*.pre
+*.sdb
+*.map
