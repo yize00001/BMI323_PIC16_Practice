@@ -9,3 +9,5 @@ nbproject/private/
 *.map
 mcc-manifest-autosave.yml
 mcc-manifest-generated-success.yml
+nbproject/Makefile-genesis.properties
+*.txt
