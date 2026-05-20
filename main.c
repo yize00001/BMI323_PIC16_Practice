@@ -33,30 +33,36 @@
     THIS SOFTWARE.
 */
 #include "mcc_generated_files/system/system.h"
+#include <stdio.h>
 
-/*
-    Main application
-*/
+#define BMI323_ADDR     0x68
+#define BMI323_CHIP_ID  0x43
+
+static uint8_t bmi323_read_reg(uint8_t reg)
+{
+    uint8_t buf[4] = {0};
+
+    I2C1_WriteRead(BMI323_ADDR, &reg, 1, buf, 4);
+    while(I2C1_IsBusy());
+
+    // BMI323 I2C 讀取有 2 bytes dummy，實際資料在 buf[2]
+    return buf[2];
+}
 
 int main(void)
 {
     SYSTEM_Initialize();
-    // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
-    // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
-    // Use the following macros to:
+    INTERRUPT_GlobalInterruptEnable();
+    INTERRUPT_PeripheralInterruptEnable();
+    __delay_ms(10);
 
-    // Enable the Global Interrupts
-    //INTERRUPT_GlobalInterruptEnable();
+    uint8_t chip_id = bmi323_read_reg(0x00);
+    printf("BMI323 Chip ID = 0x%02X (expect 0x%02X)\r\n", chip_id, BMI323_CHIP_ID);
 
-    // Disable the Global Interrupts
-    //INTERRUPT_GlobalInterruptDisable();
-
-    // Enable the Peripheral Interrupts
-    //INTERRUPT_PeripheralInterruptEnable();
-
-    // Disable the Peripheral Interrupts
-    //INTERRUPT_PeripheralInterruptDisable();
-
+    if(chip_id == BMI323_CHIP_ID)
+        printf("BMI323 OK!\r\n");
+    else
+        printf("BMI323 ERROR!\r\n");
 
     while(1)
     {
