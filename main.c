@@ -125,6 +125,11 @@ static void handle_uart_rx(void)
     int16_t gx = 0, gy = 0, gz = 0;
     int32_t mx = 0, my = 0, mz = 0;
 
+    // Clear overrun error (OERR) — set when 3rd byte arrives before FIFO is read
+    if (RC1STAbits.OERR) {
+        RC1STAbits.CREN = 0;
+        RC1STAbits.CREN = 1;
+    }
     if (!UART1__IsRxReady()) return;
     uint8_t cmd = UART1_Read();
 
@@ -150,8 +155,6 @@ static void handle_uart_rx(void)
             break;
         }
         case 'm':
-            bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
-            __delay_ms(20);
             bmm350_read_mag(&mx, &my, &mz);
             printf("MAG X=%7ld Y=%7ld Z=%7ld\r\n", mx, my, mz);
             break;
@@ -309,8 +312,6 @@ int main(void)
         int16_t temp_raw = bmi323_read_reg(BMI323_TEMP);
         int16_t temp10 = (int16_t)((int32_t)temp_raw * 10L / 512L + 230L);
 
-        bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
-        __delay_ms(20);
         bmm350_read_mag(&mx, &my, &mz);
 
         if (mag_cal_active) {
@@ -328,6 +329,5 @@ int main(void)
         printf("TEMP=%3d.%d C\r\n", temp10 / 10, temp10 < 0 ? (-temp10) % 10 : temp10 % 10);
 
         while (!TX1STAbits.TRMT);  // wait UART TX shift register empty
-        SLEEP();  // wake by TMR0 overflow (100ms, LFINTOSC runs in sleep)
     }
 }
