@@ -152,13 +152,9 @@ static void handle_uart_rx(void)
 
 static volatile uint8_t sample_flag = 0;
 
-static void timer1_callback(void)
+static void timer0_callback(void)
 {
-    static uint8_t tick = 0;
-    if (++tick >= 10) {   // 10 x 10ms = 100ms
-        tick = 0;
-        sample_flag = 1;
-    }
+    sample_flag = 1;  // TMR0 period = 100ms, direct flag
 }
 
 // =========================================================
@@ -168,6 +164,7 @@ static void timer1_callback(void)
 int main(void)
 {
     SYSTEM_Initialize();
+    TMR0_OverflowCallbackRegister(timer0_callback);  // register before first 100ms overflow
     INTERRUPT_GlobalInterruptEnable();
     INTERRUPT_PeripheralInterruptEnable();
     __delay_ms(10);
@@ -180,26 +177,18 @@ int main(void)
 
     bmi323_init();
 
-    // Calibrate ACC pitch offset — keep board flat during startup
+    // Calibrate ACC pitch offset — keep board still during startup
     {
-        int32_t sum_ax = 0, sum_az = 0;
-        uint8_t i;
-        printf("Calibrating... keep flat\r\n");
-        for (i = 0; i < 10; i++) {
-            int16_t cx = 0, cy = 0, cz = 0;
-            bmi323_read_axes(BMI323_ACCEL_X, &cx, &cy, &cz);
-            sum_ax += cx;
-            sum_az += cz;
-            __delay_ms(10);
-        }
-        acc_pitch_offset = iatan2(-(sum_ax / 10), -(sum_az / 10));
+        int16_t cx = 0, cy = 0, cz = 0;
+        printf("Calibrating... keep still\r\n");
+        bmi323_read_axes(BMI323_ACCEL_X, &cx, &cy, &cz);
+        acc_pitch_offset = iatan2(-(int32_t)cx, -(int32_t)cz);
         printf("Pitch offset = %d deg\r\n", acc_pitch_offset);
     }
 
     bmm350_init();
 
-    TMR1_OverflowCallbackRegister(timer1_callback);
-    TMR1_Start();
+    TMR0_OverflowCallbackRegister(timer0_callback);  // already started by SYSTEM_Initialize
 
     while (1)
     {
@@ -231,5 +220,8 @@ int main(void)
             compute_angles(ax, ay, az, gx, gy, mx, my);
 
         printf("TEMP=%3d.%d C\r\n", temp10 / 10, temp10 < 0 ? (-temp10) % 10 : temp10 % 10);
+
+        while (!TX1STAbits.TRMT);  // wait UART TX shift register empty
+        SLEEP();  // wake by TMR0 overflow (100ms, LFINTOSC runs in sleep)
     }
 }

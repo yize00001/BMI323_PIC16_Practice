@@ -42,7 +42,7 @@ void SYSTEM_Initialize(void)
     CLOCK_Initialize();
     PIN_MANAGER_Initialize();
     I2C1_Initialize();
-    TMR1_Initialize();
+    TMR0_Initialize();
     TMR2_Initialize();
     EUSART1_Initialize();
     PWM3_Initialize();
