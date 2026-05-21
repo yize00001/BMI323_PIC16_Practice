@@ -219,6 +219,21 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
 }
 
 // =========================================================
+// Timer2 — 10ms callback, 100ms sampling flag
+// =========================================================
+
+static volatile uint8_t sample_flag = 0;
+
+static void timer2_callback(void)
+{
+    static uint8_t tick = 0;
+    if (++tick >= 10) {   // 10 x 10ms = 100ms
+        tick = 0;
+        sample_flag = 1;
+    }
+}
+
+// =========================================================
 // Main
 // =========================================================
 
@@ -238,8 +253,13 @@ int main(void)
     bmi323_init();
     bmm350_init();
 
+    TMR2_PeriodMatchCallbackRegister(timer2_callback);
+    TMR2_Start();
+
     while (1)
     {
+        if (!sample_flag) continue;
+        sample_flag = 0;
         CLRWDT();
 
         int16_t ax = 0, ay = 0, az = 0;
@@ -256,7 +276,5 @@ int main(void)
 
         if ((status & 0x80) && (status & 0x40))
             compute_angles(ax, ay, az, gx, gy, mx, my);
-
-        __delay_ms(100);
     }
 }
