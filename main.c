@@ -90,6 +90,56 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
 }
 
 // =========================================================
+// UART RX command handler
+// 'a' -> print ACC raw   'g' -> print GYRO raw
+// 't' -> print TEMP      'm' -> print MAG raw
+// =========================================================
+
+static uint8_t auto_print = 1;
+
+static void handle_uart_rx(void)
+{
+    int16_t ax = 0, ay = 0, az = 0;
+    int16_t gx = 0, gy = 0, gz = 0;
+    int32_t mx = 0, my = 0, mz = 0;
+
+    if (!UART1__IsRxReady()) return;
+    uint8_t cmd = UART1_Read();
+
+    switch (cmd)
+    {
+        case 's':
+            auto_print ^= 1;
+            printf(auto_print ? ">> auto ON\r\n" : ">> auto OFF\r\n");
+            break;
+        case 'a':
+            bmi323_read_axes(BMI323_ACCEL_X, &ax, &ay, &az);
+            printf("ACC X=%6d Y=%6d Z=%6d\r\n", ax, ay, az);
+            break;
+        case 'g':
+            bmi323_read_axes(BMI323_GYRO_X, &gx, &gy, &gz);
+            printf("GYRO X=%6d Y=%6d Z=%6d\r\n", gx, gy, gz);
+            break;
+        case 't':
+        {
+            int16_t raw = bmi323_read_reg(BMI323_TEMP);
+            int16_t t10 = (int16_t)((int32_t)raw * 10L / 512L + 230L);
+            printf("TEMP=%3d.%d C\r\n", t10 / 10, t10 < 0 ? (-t10) % 10 : t10 % 10);
+            break;
+        }
+        case 'm':
+            bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
+            __delay_ms(20);
+            bmm350_read_mag(&mx, &my, &mz);
+            printf("MAG X=%7ld Y=%7ld Z=%7ld\r\n", mx, my, mz);
+            break;
+        default:
+            printf("? s=stop/go a=ACC g=GYRO t=TEMP m=MAG\r\n");
+            break;
+    }
+}
+
+// =========================================================
 // Timer2 — 10ms callback, 100ms sampling flag
 // =========================================================
 
@@ -129,6 +179,8 @@ int main(void)
 
     while (1)
     {
+        handle_uart_rx();
+
         if (!sample_flag) continue;
         sample_flag = 0;
         CLRWDT();
@@ -148,6 +200,8 @@ int main(void)
         bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
         __delay_ms(20);
         bmm350_read_mag(&mx, &my, &mz);
+
+        if (!auto_print) continue;
 
         if ((status & 0x80) && (status & 0x40))
             compute_angles(ax, ay, az, gx, gy, mx, my);
