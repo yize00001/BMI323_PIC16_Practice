@@ -41,6 +41,10 @@ void bmm350_init(void)
     uint8_t pmu;
     uint8_t i;
 
+    // Soft reset: clears cmd_illegal and all error state
+    bmm350_write_reg(0x7E, 0xB6);
+    __delay_ms(5);
+
     uint8_t id = bmm350_read_reg(0x00);
     printf("BMM350 Chip ID = 0x%02X (%s)\r\n", id,
            id == BMM350_CHIP_ID ? "OK" : "ERROR");

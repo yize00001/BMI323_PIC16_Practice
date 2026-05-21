@@ -50,6 +50,11 @@ static int16_t pitch10 = 0, roll10 = 0;
 static int16_t acc_pitch_offset = 0;
 static int16_t gyro_x_bias = 0, gyro_y_bias = 0, gyro_z_bias = 0;
 
+// MAG hard-iron calibration
+static int32_t mag_x_offset = 0, mag_y_offset = 0;
+static uint8_t mag_cal_active = 0;
+static int32_t mx_min, mx_max, my_min, my_max;
+
 // Integer atan2 approximation, returns -180 to +180 degrees, error < 3 deg
 static int16_t iatan2(int32_t y, int32_t x)
 {
@@ -83,8 +88,10 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
     roll10  = (int16_t)((int32_t)(roll10  + droll)  * 85L / 100L
                        + (int32_t)acc_roll  * 150L / 100L);
 
-    // 2D yaw from MAG X/Y (>> 8 to prevent int32 overflow in iatan2)
-    int16_t yaw = iatan2(-(int32_t)(my >> 8), (int32_t)(mx >> 8));
+    // 2D yaw from MAG X/Y with hard-iron offset applied
+    int32_t cmx = mx - mag_x_offset;
+    int32_t cmy = my - mag_y_offset;
+    int16_t yaw = iatan2(-(cmy >> 8), (cmx >> 8));
     if (yaw < 0) yaw += 360;
 
     // Map calibrated ACC pitch |0~90 deg| -> PWM duty 0~1023
@@ -118,6 +125,11 @@ static void handle_uart_rx(void)
     int16_t gx = 0, gy = 0, gz = 0;
     int32_t mx = 0, my = 0, mz = 0;
 
+    // Clear overrun error (OERR) — set when 3rd byte arrives before FIFO is read
+    if (RC1STAbits.OERR) {
+        RC1STAbits.CREN = 0;
+        RC1STAbits.CREN = 1;
+    }
     if (!UART1__IsRxReady()) return;
     uint8_t cmd = UART1_Read();
 
@@ -143,8 +155,6 @@ static void handle_uart_rx(void)
             break;
         }
         case 'm':
-            bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
-            __delay_ms(20);
             bmm350_read_mag(&mx, &my, &mz);
             printf("MAG X=%7ld Y=%7ld Z=%7ld\r\n", mx, my, mz);
             break;
@@ -166,8 +176,21 @@ static void handle_uart_rx(void)
                    gyro_x_bias, gyro_y_bias, gyro_z_bias);
             break;
         }
+        case 'c':
+            if (!mag_cal_active) {
+                mag_cal_active = 1;
+                mx_min = my_min =  0x7FFFFFFFL;
+                mx_max = my_max = -0x7FFFFFFFL - 1L;
+                printf("MAG cal ON rotate board\r\n");
+            } else {
+                mag_cal_active = 0;
+                mag_x_offset = (mx_max + mx_min) / 2;
+                mag_y_offset = (my_max + my_min) / 2;
+                printf("MAG off X=%ld Y=%ld\r\n", mag_x_offset, mag_y_offset);
+            }
+            break;
         default:
-            printf("? s/a/g/t/m/r\r\n");
+            printf("? s/a/g/t/m/r/c\r\n");
             break;
     }
 }
@@ -289,9 +312,14 @@ int main(void)
         int16_t temp_raw = bmi323_read_reg(BMI323_TEMP);
         int16_t temp10 = (int16_t)((int32_t)temp_raw * 10L / 512L + 230L);
 
-        bmm350_write_reg(BMM350_PMU_CMD, BMM350_PMU_FORCED);
-        __delay_ms(20);
         bmm350_read_mag(&mx, &my, &mz);
+
+        if (mag_cal_active) {
+            if (mx < mx_min) mx_min = mx;
+            if (mx > mx_max) mx_max = mx;
+            if (my < my_min) my_min = my;
+            if (my > my_max) my_max = my;
+        }
 
         if (!auto_print) continue;
 
@@ -301,6 +329,5 @@ int main(void)
         printf("TEMP=%3d.%d C\r\n", temp10 / 10, temp10 < 0 ? (-temp10) % 10 : temp10 % 10);
 
         while (!TX1STAbits.TRMT);  // wait UART TX shift register empty
-        SLEEP();  // wake by TMR0 overflow (100ms, LFINTOSC runs in sleep)
     }
 }

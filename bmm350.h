@@ -8,8 +8,9 @@
 #define BMM350_PMU_CMD      0x06
 #define BMM350_PMU_STATUS   0x07
 #define BMM350_MAG_X_XLSB   0x31
+#define BMM350_PMU_SUSPEND  0x00
 #define BMM350_PMU_NORMAL   0x01
-#define BMM350_PMU_FORCED   0x02
+#define BMM350_PMU_FORCED   0x03
 
 uint8_t bmm350_read_reg(uint8_t reg);
 void    bmm350_write_reg(uint8_t reg, uint8_t value);
