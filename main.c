@@ -48,6 +48,7 @@
 
 static int16_t pitch10 = 0, roll10 = 0;
 static int16_t acc_pitch_offset = 0;
+static int16_t gyro_x_bias = 0, gyro_y_bias = 0, gyro_z_bias = 0;
 
 // Integer atan2 approximation, returns -180 to +180 degrees, error < 3 deg
 static int16_t iatan2(int32_t y, int32_t x)
@@ -76,11 +77,11 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
     int16_t dpitch = (int16_t)((int32_t)gy * 61L / 10000L);
     int16_t droll  = (int16_t)((int32_t)gx * 61L / 10000L);
 
-    // 98% gyro integration + 2% ACC correction
-    pitch10 = (int16_t)((int32_t)(pitch10 + dpitch) * 98L / 100L
-                       + (int32_t)acc_pitch * 20L / 100L);
-    roll10  = (int16_t)((int32_t)(roll10  + droll)  * 98L / 100L
-                       + (int32_t)acc_roll  * 20L / 100L);
+    // 85% gyro + 15% ACC correction (higher ACC weight reduces gyro bias drift)
+    pitch10 = (int16_t)((int32_t)(pitch10 + dpitch) * 85L / 100L
+                       + (int32_t)acc_pitch * 150L / 100L);
+    roll10  = (int16_t)((int32_t)(roll10  + droll)  * 85L / 100L
+                       + (int32_t)acc_roll  * 150L / 100L);
 
     // 2D yaw from MAG X/Y (>> 8 to prevent int32 overflow in iatan2)
     int16_t yaw = iatan2(-(int32_t)(my >> 8), (int32_t)(mx >> 8));
@@ -147,8 +148,26 @@ static void handle_uart_rx(void)
             bmm350_read_mag(&mx, &my, &mz);
             printf("MAG X=%7ld Y=%7ld Z=%7ld\r\n", mx, my, mz);
             break;
+        case 'r':
+        {
+            int32_t sx = 0, sy = 0, sz = 0;
+            uint8_t n;
+            printf("Recal keep still\r\n");
+            for (n = 0; n < 16; n++) {
+                bmi323_read_axes(BMI323_GYRO_X, &gx, &gy, &gz);
+                sx += gx; sy += gy; sz += gz;
+                __delay_ms(10);
+            }
+            gyro_x_bias = (int16_t)(sx / 16);
+            gyro_y_bias = (int16_t)(sy / 16);
+            gyro_z_bias = (int16_t)(sz / 16);
+            pitch10 = 0; roll10 = 0;
+            printf("Bias X=%d Y=%d Z=%d\r\n",
+                   gyro_x_bias, gyro_y_bias, gyro_z_bias);
+            break;
+        }
         default:
-            printf("? s=stop/go a=ACC g=GYRO t=TEMP m=MAG\r\n");
+            printf("? s/a/g/t/m/r\r\n");
             break;
     }
 }
@@ -217,7 +236,25 @@ int main(void)
         printf("Pitch offset = %d deg\r\n", acc_pitch_offset);
     }
 
-    bmm350_init();
+    bmm350_init();  // ~2s OTP wait — board settles during this time
+
+    // Calibrate GYRO zero-offset after bmm350_init so board is stable
+    {
+        int32_t sx = 0, sy = 0, sz = 0;
+        int16_t gx = 0, gy = 0, gz = 0;
+        uint8_t n;
+        printf("GYRO cal keep still\r\n");
+        for (n = 0; n < 16; n++) {
+            bmi323_read_axes(BMI323_GYRO_X, &gx, &gy, &gz);
+            sx += gx; sy += gy; sz += gz;
+            __delay_ms(10);
+        }
+        gyro_x_bias = (int16_t)(sx / 16);
+        gyro_y_bias = (int16_t)(sy / 16);
+        gyro_z_bias = (int16_t)(sz / 16);
+        printf("GYRO bias X=%d Y=%d Z=%d\r\n", gyro_x_bias, gyro_y_bias, gyro_z_bias);
+        sample_flag = 0;
+    }
 
     TMR0_OverflowCallbackRegister(timer0_callback);  // already started by SYSTEM_Initialize
 
@@ -241,7 +278,12 @@ int main(void)
 
         uint8_t status = (uint8_t)bmi323_read_reg(BMI323_STATUS);
         if (status & 0x80) bmi323_read_axes(BMI323_ACCEL_X, &ax, &ay, &az);
-        if (status & 0x40) bmi323_read_axes(BMI323_GYRO_X,  &gx, &gy, &gz);
+        if (status & 0x40) {
+            bmi323_read_axes(BMI323_GYRO_X, &gx, &gy, &gz);
+            gx -= gyro_x_bias;
+            gy -= gyro_y_bias;
+            gz -= gyro_z_bias;
+        }
 
         __delay_ms(1);
         int16_t temp_raw = bmi323_read_reg(BMI323_TEMP);
