@@ -20,6 +20,10 @@
           <itemPath>mcc_generated_files/system/system.h</itemPath>
           <itemPath>mcc_generated_files/system/pins.h</itemPath>
         </logicalFolder>
+        <logicalFolder name="timer" displayName="timer" projectFiles="true">
+          <itemPath>mcc_generated_files/timer/tmr2.h</itemPath>
+          <itemPath>mcc_generated_files/timer/tmr2_deprecated.h</itemPath>
+        </logicalFolder>
         <logicalFolder name="uart" displayName="uart" projectFiles="true">
           <itemPath>mcc_generated_files/uart/uart_drv_interface.h</itemPath>
           <itemPath>mcc_generated_files/uart/uart_types.h</itemPath>
@@ -57,6 +61,11 @@
             <itemPath>mcc_generated_files/system/src/pins.c</itemPath>
           </logicalFolder>
         </logicalFolder>
+        <logicalFolder name="timer" displayName="timer" projectFiles="true">
+          <logicalFolder name="src" displayName="src" projectFiles="true">
+            <itemPath>mcc_generated_files/timer/src/tmr2.c</itemPath>
+          </logicalFolder>
+        </logicalFolder>
         <logicalFolder name="uart" displayName="uart" projectFiles="true">
           <logicalFolder name="src" displayName="src" projectFiles="true">
             <itemPath>mcc_generated_files/uart/src/eusart1.c</itemPath>
@@ -64,8 +73,15 @@
         </logicalFolder>
       </logicalFolder>
       <itemPath>main.c</itemPath>
+      <itemPath>bmi323.c</itemPath>
+      <itemPath>bmm350.c</itemPath>
+      <itemPath>bmi323.h</itemPath>
+      <itemPath>bmm350.h</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">

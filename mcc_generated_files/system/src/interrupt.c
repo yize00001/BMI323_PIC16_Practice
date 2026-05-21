@@ -61,7 +61,11 @@ void __interrupt() INTERRUPT_InterruptManager (void)
     // interrupt handler
     if(INTCONbits.PEIE == 1)
     {
-        if(PIE1bits.BCL1IE == 1 && PIR1bits.BCL1IF == 1)
+        if(PIE1bits.TMR2IE == 1 && PIR1bits.TMR2IF == 1)
+        {
+            TMR2_ISR();
+        } 
+        else if(PIE1bits.BCL1IE == 1 && PIR1bits.BCL1IF == 1)
         {
             I2C1_ERROR_ISR();
         } 
