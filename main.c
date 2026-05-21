@@ -104,6 +104,11 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
 
 static uint8_t auto_print = 1;
 
+static void button_callback(void)
+{
+    auto_print ^= 1;
+}
+
 static void handle_uart_rx(void)
 {
     int16_t ax = 0, ay = 0, az = 0;
@@ -188,6 +193,7 @@ int main(void)
     i2c_bus_recovery();
     SYSTEM_Initialize();
     TMR0_OverflowCallbackRegister(timer0_callback);  // register before first 100ms overflow
+    IO_RA4_SetInterruptHandler(button_callback);
     INTERRUPT_GlobalInterruptEnable();
     INTERRUPT_PeripheralInterruptEnable();
     __delay_ms(10);

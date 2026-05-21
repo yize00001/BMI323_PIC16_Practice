@@ -34,6 +34,7 @@
 
 #include "../pins.h"
 
+void (*IO_RA4_InterruptHandler)(void);
 
 void PIN_MANAGER_Initialize(void)
 {
@@ -54,14 +55,14 @@ void PIN_MANAGER_Initialize(void)
     /**
     ANSELx registers
     */
-    ANSELA = 0x37;
+    ANSELA = 0x27;
     ANSELB = 0x0;
     ANSELC = 0xDF;
 
     /**
     WPUx registers
     */
-    WPUA = 0x0;
+    WPUA = 0x10;
     WPUB = 0x0;
     WPUC = 0x0;
   
@@ -104,7 +105,7 @@ void PIN_MANAGER_Initialize(void)
     IOCx registers 
     */
     IOCAP = 0x0;
-    IOCAN = 0x0;
+    IOCAN = 0x10;
     IOCAF = 0x0;
     IOCBP = 0x0;
     IOCBN = 0x0;
@@ -113,11 +114,49 @@ void PIN_MANAGER_Initialize(void)
     IOCCN = 0x0;
     IOCCF = 0x0;
 
+    IO_RA4_SetInterruptHandler(IO_RA4_DefaultInterruptHandler);
 
+    // Enable PIE0bits.IOCIE interrupt 
+    PIE0bits.IOCIE = 1; 
 }
   
 void PIN_MANAGER_IOC(void)
 {
+    // interrupt on change for pin IO_RA4}
+    if(IOCAFbits.IOCAF4 == 1)
+    {
+        IO_RA4_ISR();  
+    }
+}
+   
+/**
+   IO_RA4 Interrupt Service Routine
+*/
+void IO_RA4_ISR(void) {
+
+    // Add custom IOCAF4 code
+
+    // Call the interrupt handler for the callback registered at runtime
+    if(IO_RA4_InterruptHandler)
+    {
+        IO_RA4_InterruptHandler();
+    }
+    IOCAFbits.IOCAF4 = 0;
+}
+
+/**
+  Allows selecting an interrupt handler for IOCAF4 at application runtime
+*/
+void IO_RA4_SetInterruptHandler(void (* InterruptHandler)(void)){
+    IO_RA4_InterruptHandler = InterruptHandler;
+}
+
+/**
+  Default interrupt handler for IOCAF4
+*/
+void IO_RA4_DefaultInterruptHandler(void){
+    // add your IO_RA4 interrupt custom code
+    // or set custom function using IO_RA4_SetInterruptHandler()
 }
 /**
  End of File

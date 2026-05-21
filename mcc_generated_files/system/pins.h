@@ -49,6 +49,26 @@
 #define PULL_UP_ENABLED      1
 #define PULL_UP_DISABLED     0
 
+// get/set IO_RA4 aliases
+#define IO_RA4_TRIS                 TRISAbits.TRISA4
+#define IO_RA4_LAT                  LATAbits.LATA4
+#define IO_RA4_PORT                 PORTAbits.RA4
+#define IO_RA4_WPU                  WPUAbits.WPUA4
+#define IO_RA4_OD                   ODCONAbits.ODCA4
+#define IO_RA4_ANS                  ANSELAbits.ANSA4
+#define IO_RA4_SetHigh()            do { LATAbits.LATA4 = 1; } while(0)
+#define IO_RA4_SetLow()             do { LATAbits.LATA4 = 0; } while(0)
+#define IO_RA4_Toggle()             do { LATAbits.LATA4 = ~LATAbits.LATA4; } while(0)
+#define IO_RA4_GetValue()           PORTAbits.RA4
+#define IO_RA4_SetDigitalInput()    do { TRISAbits.TRISA4 = 1; } while(0)
+#define IO_RA4_SetDigitalOutput()   do { TRISAbits.TRISA4 = 0; } while(0)
+#define IO_RA4_SetPullup()          do { WPUAbits.WPUA4 = 1; } while(0)
+#define IO_RA4_ResetPullup()        do { WPUAbits.WPUA4 = 0; } while(0)
+#define IO_RA4_SetPushPull()        do { ODCONAbits.ODCA4 = 0; } while(0)
+#define IO_RA4_SetOpenDrain()       do { ODCONAbits.ODCA4 = 1; } while(0)
+#define IO_RA4_SetAnalogMode()      do { ANSELAbits.ANSA4 = 1; } while(0)
+#define IO_RA4_SetDigitalMode()     do { ANSELAbits.ANSA4 = 0; } while(0)
+#define RA4_SetInterruptHandler  IO_RA4_SetInterruptHandler
 // get/set IO_RB4 aliases
 #define IO_RB4_TRIS                 TRISBbits.TRISB4
 #define IO_RB4_LAT                  LATBbits.LATB4
@@ -178,6 +198,46 @@ void PIN_MANAGER_Initialize (void);
  * @return none
  */
 void PIN_MANAGER_IOC(void);
+
+/**
+ * @ingroup  pinsdriver
+ * @brief Interrupt on Change Handler for the IO_RA4 pin functionality
+ * @param none
+ * @return none
+ */
+void IO_RA4_ISR(void);
+
+/**
+ * @ingroup  pinsdriver
+ * @brief Interrupt Handler Setter for IO_RA4 pin interrupt-on-change functionality.
+ *        Allows selecting an interrupt handler for IO_RA4 at application runtime.
+ * @pre Pins intializer called
+ * @param InterruptHandler function pointer.
+ * @return none
+ */
+void IO_RA4_SetInterruptHandler(void (* InterruptHandler)(void));
+
+/**
+ * @ingroup  pinsdriver
+ * @brief Dynamic Interrupt Handler for IO_RA4 pin.
+ *        This is a dynamic interrupt handler to be used together with the IO_RA4_SetInterruptHandler() method.
+ *        This handler is called every time the IO_RA4 ISR is executed and allows any function to be registered at runtime.
+ * @pre Pins intializer called
+ * @param none
+ * @return none
+ */
+extern void (*IO_RA4_InterruptHandler)(void);
+
+/**
+ * @ingroup  pinsdriver
+ * @brief Default Interrupt Handler for IO_RA4 pin. 
+ *        This is a predefined interrupt handler to be used together with the IO_RA4_SetInterruptHandler() method.
+ *        This handler is called every time the IO_RA4 ISR is executed. 
+ * @pre Pins intializer called
+ * @param none
+ * @return none
+ */
+void IO_RA4_DefaultInterruptHandler(void);
 
 
 #endif // PINS_H
