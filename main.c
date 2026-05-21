@@ -161,8 +161,31 @@ static void timer0_callback(void)
 // Main
 // =========================================================
 
+static void i2c_bus_recovery(void)
+{
+    uint8_t i;
+    TRISBbits.TRISB4 = 0;   // SCL output
+    TRISBbits.TRISB6 = 1;   // SDA input
+    LATBbits.LATB4   = 1;
+
+    for (i = 0; i < 9; i++) {
+        LATBbits.LATB4 = 0; __delay_us(10);
+        LATBbits.LATB4 = 1; __delay_us(10);
+        if (PORTBbits.RB6) break;  // SDA released
+    }
+    // STOP condition
+    TRISBbits.TRISB6 = 0;
+    LATBbits.LATB6 = 0; __delay_us(10);
+    LATBbits.LATB4 = 1; __delay_us(10);
+    LATBbits.LATB6 = 1; __delay_us(10);
+    // Release for MCC I2C
+    TRISBbits.TRISB4 = 1;
+    TRISBbits.TRISB6 = 1;
+}
+
 int main(void)
 {
+    i2c_bus_recovery();
     SYSTEM_Initialize();
     TMR0_OverflowCallbackRegister(timer0_callback);  // register before first 100ms overflow
     INTERRUPT_GlobalInterruptEnable();
@@ -197,6 +220,7 @@ int main(void)
         if (!sample_flag) continue;
         sample_flag = 0;
         CLRWDT();
+        SLEEP_IND_Toggle();   // blinks at 5Hz to confirm wake from sleep
 
         int16_t ax = 0, ay = 0, az = 0;
         int16_t gx = 0, gy = 0, gz = 0;
