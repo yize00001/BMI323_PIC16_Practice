@@ -61,9 +61,9 @@ void __interrupt() INTERRUPT_InterruptManager (void)
     // interrupt handler
     if(INTCONbits.PEIE == 1)
     {
-        if(PIE1bits.TMR2IE == 1 && PIR1bits.TMR2IF == 1)
+        if(PIE1bits.TMR1IE == 1 && PIR1bits.TMR1IF == 1)
         {
-            TMR2_ISR();
+            TMR1_OverflowISR();
         } 
         else if(PIE1bits.BCL1IE == 1 && PIR1bits.BCL1IF == 1)
         {

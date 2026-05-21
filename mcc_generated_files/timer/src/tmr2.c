@@ -58,19 +58,18 @@ void TMR2_Initialize(void)
 
     T2RST = (uint8_t)((0 << _T2RST_T2RSEL_POSN));  // T2RSEL T2INPPS pin
 
-    T2PR = (uint8_t)0x7C;    // Period 0.01s; Timer Prescaled Frequency 125000Hz; Count 124; Postscaler 1:10; 
+    T2PR = (uint8_t)0xFF;    // Period 0.000032s; Timer Prescaled Frequency 8000000Hz; Count 255; Postscaler 1:1; 
 
     T2TMR = (uint8_t)0x0;
 
     TMR2_PeriodMatchCallback = TMR2_DefaultPeriodMatchCallback;
     
-    PIR1bits.TMR2IF = 0U;   
-    PIE1bits.TMR2IE = 1U;
+    PIR1bits.TMR2IF = 0U;
 
     
-    T2CON = (uint8_t)((6 << _T2CON_T2CKPS_POSN)   // T2CKPS 1:64
+    T2CON = (uint8_t)((0 << _T2CON_T2CKPS_POSN)   // T2CKPS 1:1
         | (1 << _T2CON_TMR2ON_POSN)   // TMR2ON on
-        | (9 << _T2CON_T2OUTPS_POSN));  // T2OUTPS 1:10
+        | (0 << _T2CON_T2OUTPS_POSN));  // T2OUTPS 1:1
 }
 
 void TMR2_Deinitialize(void)
@@ -133,24 +132,26 @@ uint8_t TMR2_MaxCountGet(void)
     return TMR2_MAX_COUNT;
 }
 
-void TMR2_TMRInterruptEnable(void)
+bool TMR2_PeriodMatchStatusGet(void)
 {
-    PIE1bits.TMR2IE = 1U;
+    return PIR1bits.TMR2IF;
 }
 
-void TMR2_TMRInterruptDisable(void)
+void TMR2_PeriodMatchStatusClear(void)
 {
-    PIE1bits.TMR2IE = 0U;
+    PIR1bits.TMR2IF = 0U;
 }
 
-void TMR2_ISR(void)
+void TMR2_Tasks(void)
 {
-    // The ticker is set to 1 -> The callback function gets called every time this ISR executes.
-    if(NULL != TMR2_PeriodMatchCallback)
+    if(1U == PIR1bits.TMR2IF)
     {
-        TMR2_PeriodMatchCallback();
+        if(NULL != TMR2_PeriodMatchCallback)
+        {
+            TMR2_PeriodMatchCallback();
+        }
+        PIR1bits.TMR2IF = 0U;
     }
-   PIR1bits.TMR2IF = 0U;
 }
 
 void TMR2_PeriodMatchCallbackRegister(void (* callbackHandler)(void))

@@ -56,7 +56,7 @@
  * @brief Defines the TMR2 prescaled clock frequency in hertz.
  */
 /* cppcheck-suppress misra-c2012-2.5 */
-#define TMR2_CLOCK_FREQ (125000UL)
+#define TMR2_CLOCK_FREQ (8000000UL)
 /**
  * @ingroup tmr2
  * @brief Defines the Custom Name for the \ref TMR2_MAX_COUNT.
@@ -137,22 +137,22 @@
 #define Timer2_PeriodMatchCallbackRegister TMR2_PeriodMatchCallbackRegister
 /**
  * @ingroup tmr2
- * @brief Defines the Custom Name for the \ref TMR2_TMRInterruptEnable API.
+ * @brief Defines the Custom Name for the \ref TMR2_PeriodMatchStatusGet API.
  */
 /* cppcheck-suppress misra-c2012-2.5 */
-#define Timer2_TMRInterruptEnable TMR2_TMRInterruptEnable
+#define Timer2_PeriodMatchStatusGet TMR2_PeriodMatchStatusGet
 /**
  * @ingroup tmr2
- * @brief Defines the Custom Name for the \ref TMR2_TMRInterruptDisable API.
+ * @brief Defines the Custom Name for the \ref TMR2_PeriodMatchStatusClear API.
  */
 /* cppcheck-suppress misra-c2012-2.5 */
-#define Timer2_TMRInterruptDisable TMR2_TMRInterruptDisable
+#define Timer2_PeriodMatchStatusClear TMR2_PeriodMatchStatusClear
 /**
  * @ingroup tmr2
- * @brief Defines the Custom Name for the \ref TMR2_ISR API.
+ * @brief Defines the Custom Name for the \ref TMR2_Tasks API.
  */
 /* cppcheck-suppress misra-c2012-2.5 */
-#define Timer2_ISR TMR2_ISR
+#define Timer2_Tasks TMR2_Tasks
 
 /**
  * @ingroup tmr2
@@ -418,28 +418,27 @@ void TMR2_ExtResetSourceSet(TMR2_HLT_EXT_RESET_SOURCE reset);
 
 /**
  * @ingroup tmr2
- * @brief Enables the TMR2 interrupt.
+ * @brief Returns the status of the TMR2 Period Match Interrupt flag.
  * @param None.
- * @return None.
+ * @return Interrupt flag status
  */
-void TMR2_TMRInterruptEnable(void);
+bool TMR2_PeriodMatchStatusGet(void);
 
 /**
  * @ingroup tmr2
- * @brief Disables the TMR2 interrupt.
+ * @brief Clears the TMR2 Period Match Interrupt flag.
  * @param None.
  * @return None.
  */
-void TMR2_TMRInterruptDisable(void);
+void TMR2_PeriodMatchStatusClear(void);
 
 /**
  * @ingroup tmr2
- * @brief Interrupt Service Routine (ISR) for the TMR2 period match interrupt.
+ * @brief Performs tasks to be executed during the TMR2 period match event.
  * @param None.
  * @return None.
  */
-void TMR2_ISR(void);
-
+void TMR2_Tasks(void);
 /**
  * @ingroup tmr2
  * @brief Registers a callback function for the TMR2 period match event.

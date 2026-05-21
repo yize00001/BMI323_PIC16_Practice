@@ -1,18 +1,16 @@
 /**
- * System Driver Source File
- * 
- * @file system.c
- * 
- * @ingroup systemdriver
- * 
- * @brief This file contains the API implementation for the System Driver.
- *
- * @version Driver Version 2.0.3
- *
- * @version Package Version 4.1.3
+  * PWM3 Generated Driver File
+  *
+  * @file pwm3.c
+  *
+  * @ingroup pwm3
+  *
+  * @brief This file contains the API implementations for the PWM3 module.
+  *
+  * @version PWM3 Driver Version 2.0.5
 */
 
-/*
+ /*
 ? [2026] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
@@ -32,21 +30,40 @@
     EXCEED AMOUNT OF FEES, IF ANY, YOU PAID DIRECTLY TO MICROCHIP FOR 
     THIS SOFTWARE.
 */
+ 
+ /**
+  * Section: Included Files
+  */
 
-#include "../system.h"
+ #include <xc.h>
+ #include "../pwm3.h"
+
+ /**
+  * Section: PWM Module APIs
+  */
+
+ void PWM3_Initialize(void)
+ {
+    // Set the PWM3 to the options selected in the User Interface
+    
+    // PWMPOL active_hi; PWMEN enabled; 
+    PWM3CON = (uint8_t)0x80;
+    
+    // PWMDCH 127; 
+    PWM3DCH = (uint8_t)0x7F;
+
+    // PWMDCL 3; 
+    PWM3DCL = (uint8_t)0xC0;
+    
 
 
+ }
 
-void SYSTEM_Initialize(void)
-{
-    CLOCK_Initialize();
-    PIN_MANAGER_Initialize();
-    I2C1_Initialize();
-    TMR1_Initialize();
-    TMR2_Initialize();
-    EUSART1_Initialize();
-    PWM3_Initialize();
-    INTERRUPT_Initialize();
-}
-
-
+ void PWM3_LoadDutyValue(uint16_t dutyValue)
+ {
+     // Writing to 8 MSBs of PWM duty cycle in PWMDCH register
+     PWM3DCH = (uint8_t) ((dutyValue & 0x03FCu) >> 2);
+     
+     // Writing to 2 LSBs of PWM duty cycle in PWMDCL register
+     PWM3DCL = (uint8_t) ((dutyValue & 0x0003u) << 6);
+ }

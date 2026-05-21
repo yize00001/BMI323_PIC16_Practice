@@ -42,9 +42,11 @@
 #include "config_bits.h"
 #include "../system/pins.h"
 #include "../uart/eusart1.h"
+#include "../pwm/pwm3.h"
 #include "../system/interrupt.h"
 #include "../system/clock.h"
 #include "../i2c_host/mssp1.h"
+#include "../timer/tmr1.h"
 #include "../timer/tmr2.h"
 
 /**

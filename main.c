@@ -47,6 +47,7 @@
 // =========================================================
 
 static int16_t pitch10 = 0, roll10 = 0;
+static int16_t acc_pitch_offset = 0;
 
 // Integer atan2 approximation, returns -180 to +180 degrees, error < 3 deg
 static int16_t iatan2(int32_t y, int32_t x)
@@ -84,6 +85,12 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
     // 2D yaw from MAG X/Y (>> 8 to prevent int32 overflow in iatan2)
     int16_t yaw = iatan2(-(int32_t)(my >> 8), (int32_t)(mx >> 8));
     if (yaw < 0) yaw += 360;
+
+    // Map calibrated ACC pitch |0~90 deg| -> PWM duty 0~1023
+    int16_t cal_pitch = acc_pitch - acc_pitch_offset;
+    int16_t led_pitch = cal_pitch < 0 ? -cal_pitch : cal_pitch;
+    if (led_pitch > 90) led_pitch = 90;
+    PWM3_LoadDutyValue((uint16_t)((int32_t)led_pitch * 1023L / 90L));
 
     printf("PITCH=%4d ROLL=%4d YAW=%4d deg\r\n",
            pitch10 / 10, roll10 / 10, yaw);
@@ -145,7 +152,7 @@ static void handle_uart_rx(void)
 
 static volatile uint8_t sample_flag = 0;
 
-static void timer2_callback(void)
+static void timer1_callback(void)
 {
     static uint8_t tick = 0;
     if (++tick >= 10) {   // 10 x 10ms = 100ms
@@ -172,10 +179,27 @@ int main(void)
         while (1);
 
     bmi323_init();
+
+    // Calibrate ACC pitch offset — keep board flat during startup
+    {
+        int32_t sum_ax = 0, sum_az = 0;
+        uint8_t i;
+        printf("Calibrating... keep flat\r\n");
+        for (i = 0; i < 10; i++) {
+            int16_t cx = 0, cy = 0, cz = 0;
+            bmi323_read_axes(BMI323_ACCEL_X, &cx, &cy, &cz);
+            sum_ax += cx;
+            sum_az += cz;
+            __delay_ms(10);
+        }
+        acc_pitch_offset = iatan2(-(sum_ax / 10), -(sum_az / 10));
+        printf("Pitch offset = %d deg\r\n", acc_pitch_offset);
+    }
+
     bmm350_init();
 
-    TMR2_PeriodMatchCallbackRegister(timer2_callback);
-    TMR2_Start();
+    TMR1_OverflowCallbackRegister(timer1_callback);
+    TMR1_Start();
 
     while (1)
     {

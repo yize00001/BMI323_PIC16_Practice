@@ -1,15 +1,13 @@
 /**
- * System Driver Source File
- * 
- * @file system.c
- * 
- * @ingroup systemdriver
- * 
- * @brief This file contains the API implementation for the System Driver.
+ * PWM3 Generated Driver API Header File
  *
- * @version Driver Version 2.0.3
+ * @file pwm3.h
  *
- * @version Package Version 4.1.3
+ * @defgroup pwm3 PWM3
+ *
+ * @brief This file contains the API prototypes for the PWM3 driver.
+ *
+ * @version PWM3 Driver Version 2.0.5
 */
 
 /*
@@ -33,20 +31,37 @@
     THIS SOFTWARE.
 */
 
-#include "../system.h"
+#ifndef PWM3_H
+ #define PWM3_H
+ 
+ /**
+  * Section: Included Files
+  */
+
+ #include <xc.h>
+ #include <stdint.h>
+
+ /**
+  * Section: Macro Declarations
+ */
+
+ #define PWM3_INITIALIZE_DUTY_VALUE    511
 
 
+/**
+ * @ingroup pwm3
+ * @brief Initializes the PWM3 interface.
+ * @param None.
+ * @return None.
+ */
+ void PWM3_Initialize(void);
 
-void SYSTEM_Initialize(void)
-{
-    CLOCK_Initialize();
-    PIN_MANAGER_Initialize();
-    I2C1_Initialize();
-    TMR1_Initialize();
-    TMR2_Initialize();
-    EUSART1_Initialize();
-    PWM3_Initialize();
-    INTERRUPT_Initialize();
-}
-
-
+ /**
+ * @ingroup pwm3
+ * @brief Loads the 16-bit duty cycle value.
+ * @param uint16_t dutyValue - PWM3 duty cycle value to be loaded.
+ * @return None.
+ */
+ void PWM3_LoadDutyValue(uint16_t dutyValue);
+ 
+ #endif	//PWM3_H
