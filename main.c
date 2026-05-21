@@ -103,10 +103,12 @@ static void compute_angles(int16_t ax, int16_t ay, int16_t az,
 // =========================================================
 
 static uint8_t auto_print = 1;
+static volatile uint8_t btn_changed = 0;
 
 static void button_callback(void)
 {
     auto_print ^= 1;
+    btn_changed = 1;
 }
 
 static void handle_uart_rx(void)
@@ -222,6 +224,11 @@ int main(void)
     while (1)
     {
         handle_uart_rx();
+
+        if (btn_changed) {
+            btn_changed = 0;
+            printf(auto_print ? "ON\r\n" : "OFF\r\n");
+        }
 
         if (!sample_flag) continue;
         sample_flag = 0;
