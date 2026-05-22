@@ -164,6 +164,25 @@
 #define IO_RC3_SetOpenDrain()       do { ODCONCbits.ODCC3 = 1; } while(0)
 #define IO_RC3_SetAnalogMode()      do { ANSELCbits.ANSC3 = 1; } while(0)
 #define IO_RC3_SetDigitalMode()     do { ANSELCbits.ANSC3 = 0; } while(0)
+// get/set IO_RC4 aliases
+#define X9C_CS_TRIS                 TRISCbits.TRISC4
+#define X9C_CS_LAT                  LATCbits.LATC4
+#define X9C_CS_PORT                 PORTCbits.RC4
+#define X9C_CS_WPU                  WPUCbits.WPUC4
+#define X9C_CS_OD                   ODCONCbits.ODCC4
+#define X9C_CS_ANS                  ANSELCbits.ANSC4
+#define X9C_CS_SetHigh()            do { LATCbits.LATC4 = 1; } while(0)
+#define X9C_CS_SetLow()             do { LATCbits.LATC4 = 0; } while(0)
+#define X9C_CS_Toggle()             do { LATCbits.LATC4 = ~LATCbits.LATC4; } while(0)
+#define X9C_CS_GetValue()           PORTCbits.RC4
+#define X9C_CS_SetDigitalInput()    do { TRISCbits.TRISC4 = 1; } while(0)
+#define X9C_CS_SetDigitalOutput()   do { TRISCbits.TRISC4 = 0; } while(0)
+#define X9C_CS_SetPullup()          do { WPUCbits.WPUC4 = 1; } while(0)
+#define X9C_CS_ResetPullup()        do { WPUCbits.WPUC4 = 0; } while(0)
+#define X9C_CS_SetPushPull()        do { ODCONCbits.ODCC4 = 0; } while(0)
+#define X9C_CS_SetOpenDrain()       do { ODCONCbits.ODCC4 = 1; } while(0)
+#define X9C_CS_SetAnalogMode()      do { ANSELCbits.ANSC4 = 1; } while(0)
+#define X9C_CS_SetDigitalMode()     do { ANSELCbits.ANSC4 = 0; } while(0)
 // get/set IO_RC5 aliases
 #define IO_RC5_TRIS                 TRISCbits.TRISC5
 #define IO_RC5_LAT                  LATCbits.LATC5
@@ -183,6 +202,44 @@
 #define IO_RC5_SetOpenDrain()       do { ODCONCbits.ODCC5 = 1; } while(0)
 #define IO_RC5_SetAnalogMode()      do { ANSELCbits.ANSC5 = 1; } while(0)
 #define IO_RC5_SetDigitalMode()     do { ANSELCbits.ANSC5 = 0; } while(0)
+// get/set IO_RC6 aliases
+#define X9C_INC_TRIS                 TRISCbits.TRISC6
+#define X9C_INC_LAT                  LATCbits.LATC6
+#define X9C_INC_PORT                 PORTCbits.RC6
+#define X9C_INC_WPU                  WPUCbits.WPUC6
+#define X9C_INC_OD                   ODCONCbits.ODCC6
+#define X9C_INC_ANS                  ANSELCbits.ANSC6
+#define X9C_INC_SetHigh()            do { LATCbits.LATC6 = 1; } while(0)
+#define X9C_INC_SetLow()             do { LATCbits.LATC6 = 0; } while(0)
+#define X9C_INC_Toggle()             do { LATCbits.LATC6 = ~LATCbits.LATC6; } while(0)
+#define X9C_INC_GetValue()           PORTCbits.RC6
+#define X9C_INC_SetDigitalInput()    do { TRISCbits.TRISC6 = 1; } while(0)
+#define X9C_INC_SetDigitalOutput()   do { TRISCbits.TRISC6 = 0; } while(0)
+#define X9C_INC_SetPullup()          do { WPUCbits.WPUC6 = 1; } while(0)
+#define X9C_INC_ResetPullup()        do { WPUCbits.WPUC6 = 0; } while(0)
+#define X9C_INC_SetPushPull()        do { ODCONCbits.ODCC6 = 0; } while(0)
+#define X9C_INC_SetOpenDrain()       do { ODCONCbits.ODCC6 = 1; } while(0)
+#define X9C_INC_SetAnalogMode()      do { ANSELCbits.ANSC6 = 1; } while(0)
+#define X9C_INC_SetDigitalMode()     do { ANSELCbits.ANSC6 = 0; } while(0)
+// get/set IO_RC7 aliases
+#define X9C_UD_TRIS                 TRISCbits.TRISC7
+#define X9C_UD_LAT                  LATCbits.LATC7
+#define X9C_UD_PORT                 PORTCbits.RC7
+#define X9C_UD_WPU                  WPUCbits.WPUC7
+#define X9C_UD_OD                   ODCONCbits.ODCC7
+#define X9C_UD_ANS                  ANSELCbits.ANSC7
+#define X9C_UD_SetHigh()            do { LATCbits.LATC7 = 1; } while(0)
+#define X9C_UD_SetLow()             do { LATCbits.LATC7 = 0; } while(0)
+#define X9C_UD_Toggle()             do { LATCbits.LATC7 = ~LATCbits.LATC7; } while(0)
+#define X9C_UD_GetValue()           PORTCbits.RC7
+#define X9C_UD_SetDigitalInput()    do { TRISCbits.TRISC7 = 1; } while(0)
+#define X9C_UD_SetDigitalOutput()   do { TRISCbits.TRISC7 = 0; } while(0)
+#define X9C_UD_SetPullup()          do { WPUCbits.WPUC7 = 1; } while(0)
+#define X9C_UD_ResetPullup()        do { WPUCbits.WPUC7 = 0; } while(0)
+#define X9C_UD_SetPushPull()        do { ODCONCbits.ODCC7 = 0; } while(0)
+#define X9C_UD_SetOpenDrain()       do { ODCONCbits.ODCC7 = 1; } while(0)
+#define X9C_UD_SetAnalogMode()      do { ANSELCbits.ANSC7 = 1; } while(0)
+#define X9C_UD_SetDigitalMode()     do { ANSELCbits.ANSC7 = 0; } while(0)
 /**
  * @ingroup  pinsdriver
  * @brief GPIO and peripheral I/O initialization

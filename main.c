@@ -35,6 +35,7 @@
 #include "mcc_generated_files/system/system.h"
 #include "bmi323.h"
 #include "bmm350.h"
+#include "X9C103S.h"
 
 // =========================================================
 // Complementary Filter  (integer-only, no math.h)
@@ -189,8 +190,34 @@ static void handle_uart_rx(void)
                 printf("MAG off X=%ld Y=%ld\r\n", mag_x_offset, mag_y_offset);
             }
             break;
+        case '+':
+            x9c103s_step_up();
+            printf("X9C pos=%d\r\n", x9c103s_get_position());
+            break;
+        case '-':
+            x9c103s_step_down();
+            printf("X9C pos=%d\r\n", x9c103s_get_position());
+            break;
+        case 'p':
+        {
+            uint8_t pos = 0;
+            uint8_t c;
+            // read first digit
+            while (!UART1__IsRxReady());
+            c = UART1_Read();
+            if (c >= '0' && c <= '9') pos = c - '0';
+            // wait briefly for second digit
+            __delay_ms(50);
+            if (UART1__IsRxReady()) {
+                c = UART1_Read();
+                if (c >= '0' && c <= '9') pos = pos * 10 + (c - '0');
+            }
+            if (pos > 99) pos = 99;
+            x9c103s_goto_position(pos);
+            break;
+        }
         default:
-            printf("? s/a/g/t/m/r/c\r\n");
+            printf("? s/a/g/t/m/r/c/+/-/p\r\n");
             break;
     }
 }
@@ -241,6 +268,7 @@ int main(void)
     INTERRUPT_GlobalInterruptEnable();
     INTERRUPT_PeripheralInterruptEnable();
     __delay_ms(10);
+    x9c103s_init();
 
     uint8_t chip_id = (uint8_t)bmi323_read_reg(0x00);
     printf("BMI323 Chip ID = 0x%02X (%s)\r\n", chip_id,

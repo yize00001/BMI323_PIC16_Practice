@@ -88,6 +88,8 @@
       <itemPath>bmm350.c</itemPath>
       <itemPath>bmi323.h</itemPath>
       <itemPath>bmm350.h</itemPath>
+      <itemPath>X9C103S.c</itemPath>
+      <itemPath>X9C103S.h</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -267,8 +269,6 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-1fff"/>
         <property key="poweroptions.powerenable" value="true"/>
-        <property key="programmerToGoFilePath"
-                  value="debug/default/BMI323_PIC16_Practice_ptg"/>
         <property key="programmerToGoImageName" value="BMI323_PIC16_Practice_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
@@ -296,7 +296,7 @@
                   value="toolpack.updateoptions.uselatestoolpack"/>
         <property key="toolpack.updateoptions.packversion"
                   value="Press to select which tool pack to use"/>
-        <property key="voltagevalue" value="3.3"/>
+        <property key="voltagevalue" value="5"/>
       </PK5Tool>
       <Tool>
         <property key="AutoSelectMemRanges" value="auto"/>
@@ -362,7 +362,7 @@
                   value="toolpack.updateoptions.uselatestoolpack"/>
         <property key="toolpack.updateoptions.packversion"
                   value="Press to select which tool pack to use"/>
-        <property key="voltagevalue" value="3.3"/>
+        <property key="voltagevalue" value="5"/>
       </Tool>
       <XC8-CO>
         <property key="coverage-enable" value=""/>
