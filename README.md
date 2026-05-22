@@ -1,6 +1,6 @@
-# BMI323 + BMM350 on PIC16F15245
+# BMI323 + BMM350 + X9C103S on PIC16F15245
 
-A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to PIC16F15245, featuring a complementary filter for pitch/roll/yaw angle estimation.
+A practice project porting BMI323 IMU, BMM350 magnetometer, and X9C103S digital potentiometer drivers to PIC16F15245, featuring a complementary filter for pitch/roll/yaw angle estimation and UART-controlled resistance adjustment.
 
 ## Hardware
 
@@ -9,6 +9,7 @@ A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to
 | PIC16F15245 (SSOP20) | Main MCU |
 | BMI323 Breakout Board | 6-axis IMU (accelerometer + gyroscope) |
 | BMM350 Breakout Board | 3-axis magnetometer |
+| X9C103S Breakout Board | 10 kΩ digital potentiometer, 100 positions |
 | PICkit 5 | Programmer/debugger |
 | CH340 USB-UART | Serial monitor |
 
@@ -40,12 +41,16 @@ A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to
 | TX1 | RC5 (Pin 5) | CH340 RX |
 | RX1 | RB5 (Pin 12) | CH340 TX |
 | PWM LED | RC3 (Pin 7) | LED + 330Ω → GND |
-| Sleep LED | RB7 (Pin 10) | LED + 330Ω → GND |
+| Sample LED | RB7 (Pin 10) | LED + 330Ω → GND |
 | Button | RA4 (Pin 3) | Button → GND (WPU enabled) |
 | MCLR | RA3 (Pin 4) | PICkit Pin 1 |
+| X9C_CS | RC4 (Pin 6) | X9C103S /CS |
+| X9C_INC | RC6 (Pin 8) | X9C103S INC |
+| X9C_UD | RC7 (Pin 9) | X9C103S U/D |
 
 **BMI323:** CS → VDD (I2C mode), SDO → GND (address 0x68)  
-**BMM350:** Fixed I2C address 0x14
+**BMM350:** Fixed I2C address 0x14  
+**X9C103S:** VH → 3.3 V, VL → GND, VW = wiper output
 
 ## MCC Configuration
 
@@ -54,10 +59,11 @@ A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to
 | Clock | HFINTOSC 32 MHz |
 | I2C (MSSP1) | Host, 100 kHz, SCL=RB4, SDA=RB6 |
 | UART (EUSART1) | 115200 baud, TX=RC5, RX=RB5 |
-| TMR0 | LFINTOSC 31 kHz, 16-bit, 100 ms overflow (Sleep wakeup) |
+| TMR0 | LFINTOSC 31 kHz, 16-bit, 100 ms overflow (sampling flag) |
 | TMR2 | PWM base clock |
 | PWM3 | RC3, duty 0–1023 |
 | IOC | RA4 falling edge (button) |
+| GPIO Output | RC4 (X9C_CS), RC6 (X9C_INC), RC7 (X9C_UD) |
 
 ## Features
 
@@ -65,10 +71,12 @@ A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to
 - Read BMM350 magnetometer
 - Complementary filter: pitch / roll (gyro + ACC) and yaw (magnetometer)
 - PWM LED brightness controlled by pitch angle
-- Sleep mode: TMR0 + LFINTOSC 100 ms wakeup cycle
-- Sleep indicator: RB7 LED blinks at 5 Hz
+- 100 ms sampling period via TMR0 overflow flag
+- Sample indicator: RB7 LED blinks at 5 Hz
 - I2C bus recovery on startup (9 SCL pulses)
 - GYRO zero-offset calibration at startup
+- MAG hard-iron calibration (rotate board to collect min/max)
+- X9C103S digital potentiometer: 100 positions (0–99), UART-controlled
 
 ## UART Commands
 
@@ -80,6 +88,10 @@ A practice project porting the BMI323 IMU and BMM350 magnetometer I2C drivers to
 | `t` | Print temperature |
 | `m` | Print magnetometer (X/Y/Z) |
 | `r` | Re-run GYRO zero-offset calibration |
+| `c` | Toggle MAG hard-iron calibration (start/stop) |
+| `+` | X9C103S step up one position |
+| `-` | X9C103S step down one position |
+| `p##` | X9C103S go to position 00–99 (send digits immediately after `p`, no Enter) |
 
 ## Building
 
@@ -94,6 +106,7 @@ BMI323_PIC16_Practice.X/
 ├── main.c              # Main application
 ├── bmi323.c / .h       # BMI323 I2C driver
 ├── bmm350.c / .h       # BMM350 I2C driver
+├── X9C103S.c / .h      # X9C103S digital potentiometer driver
 └── mcc_generated_files/
     ├── system/         # Clock, pins, interrupt
     ├── i2c_host/       # MSSP1 I2C
@@ -104,6 +117,6 @@ BMI323_PIC16_Practice.X/
 
 ## License
 
-User application code (`main.c`, `bmi323.c`, `bmi323.h`, `bmm350.c`, `bmm350.h`) is released under the MIT License.
+User application code (`main.c`, `bmi323.c`, `bmi323.h`, `bmm350.c`, `bmm350.h`, `X9C103S.c`, `X9C103S.h`) is released under the MIT License.
 
 MCC-generated files in `mcc_generated_files/` are copyright Microchip Technology Inc. and may be used exclusively with Microchip products per their license terms.
